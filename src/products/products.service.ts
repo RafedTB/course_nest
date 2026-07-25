@@ -1,6 +1,9 @@
 import { Injectable, NotFoundException } from "@nestjs/common";
 import { CreateProductDto } from "./dto/create-product.dto";
 import { UpdateProductDto } from "./dto/update-product.dto";
+import { Repository } from "typeorm";
+import { Product } from "./product.entity";
+import { InjectRepository } from "@nestjs/typeorm";
 
 
 type ProductType = {
@@ -10,24 +13,18 @@ type ProductType = {
 };
 @Injectable()
 export class ProductsService {
+    constructor(
+        @InjectRepository(Product)
+        private readonly productRepository: Repository<Product>) {}
 
-    private products: ProductType[] = [
-        {id:1, name: "Product 1", price: 10.99},
-        {id:2, name: "Product 2", price: 19.99},
-        {id:3, name: "Product 3", price: 5.99},
-    ];
+   
 
         /**
          * create new product
          */
-        public createProduct({name, price}:CreateProductDto) {
-            const newProduct: ProductType = {
-                id: this.products.length + 1,
-                name,
-                price
-            };
-            this.products.push(newProduct);
-            return newProduct;
+        public async createProduct(dto:CreateProductDto) {
+            const product = this.productRepository.create(dto);
+            return await this.productRepository.save(product);
         }
 
 
@@ -35,24 +32,20 @@ export class ProductsService {
          * get all products
          */
        
-        public getAll() {
-            return this.products;
-
+        public async getAll() {
+            return await this.productRepository.find();
         }
 
         /**
          * get one product by id
          */
         
-        public getOneBy(id: number) {
-            console.log(typeof id);
-            
-            const product =this.products.find(p=> p.id === (id));
-            if(!product) {
+        public async getOneBy(id: number) {
+            const product = await this.productRepository.findOne({ where: { id } });
+            if (!product) {
                 throw new NotFoundException(`Product with id ${id} not found`);
-            }else {
-            return product;
             }
+            return product;
         }
 
 
@@ -60,38 +53,21 @@ export class ProductsService {
          * Update product by id
          */
         
-        public update(id: number, UpdateProductDto:UpdateProductDto) {
-            
-            const productIndex = this.products.findIndex(p=> p.id === (id));
-            if(productIndex === -1) {
-                throw new NotFoundException(`Product with id ${id} not found`);
-            }
-            const updatedProduct = {
-                ...this.products[productIndex],
-                ...UpdateProductDto
-            };
-            this.products[productIndex] = updatedProduct;
-            return updatedProduct;
+        public async update(id: number, UpdateProductDto:UpdateProductDto) {
+            const product = await this.getOneBy(id);
+            Object.assign(product, UpdateProductDto);
+            return await this.productRepository.save(product);
         }
-
-
-
-
 
         /**
          * Delete product by id
          */
+    
+        public async delete(id: number) {
+            const product = await this.getOneBy(id);
+            await this.productRepository.remove(product);
+            return { message: `Product with id ${id} has been deleted` };
 
-        
-        
-        public delete( id: number) {
-            const productIndex = this.products.findIndex(p=> p.id === (id));
-            if(productIndex === -1) {
-                throw new NotFoundException(`Product with id ${id} not found`);
-            }
-            const deletedProduct = this.products[productIndex];
-            this.products.splice(productIndex, 1);
-            return deletedProduct;
         }
             
 }

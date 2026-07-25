@@ -6,6 +6,10 @@ export class UpdateProductDto {
     @IsOptional()
     name?: string;
 
+    @IsString()
+    @IsOptional()
+    description:string = '';
+
     @IsNumber()
     @IsOptional()
     @Min(0)
