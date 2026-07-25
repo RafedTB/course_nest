@@ -7,9 +7,7 @@ import { ProductsService } from "./products.service";
 
 @Controller("/api/products")
 export class ProductsController {
-
-    //this consider a bad practice method i will fix it later by using dependency injection
-    private productsService: ProductsService = new ProductsService();
+    constructor(private readonly productsService: ProductsService) {}
    
 
     @Post()
