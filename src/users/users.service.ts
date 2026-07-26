@@ -4,6 +4,7 @@ import { Repository } from "typeorm";
 import { User } from "./user.entity";
 import { InjectRepository } from "@nestjs/typeorm";
 import * as bcrypt from 'bcryptjs';
+import { LoginDto } from "./dto/login.dto";
 
 
 @Injectable()
@@ -32,7 +33,21 @@ export class usersService {
         newUser = await this.userRepository.save(newUser);
         // TODO: Generate JWT token
         return newUser;
+    }
 
-        
+
+    /**
+     * login a user by eamil and password
+     * @param loginDto data for logging in a user
+     * @returns JWT(ACCESS_TOKEN) token for the logged in user.
+     */
+    public async login(loginDto: LoginDto) {
+        const {email, password} = loginDto;
+        const user = await this.userRepository.findOne({where:{email}});
+        if (!user) throw new BadRequestException('Invalid email or password');
+        const isPasswordValid = await bcrypt.compare(password, user.password);
+        if (!isPasswordValid) throw new BadRequestException('Invalid email or password');
+        // TODO: Generate JWT token
+        return user;
     }
 }
