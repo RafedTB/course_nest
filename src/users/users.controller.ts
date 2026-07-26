@@ -1,7 +1,12 @@
-import {Body, Controller, Get, HttpCode, Post,HttpStatus} from "@nestjs/common";
+import {Body, Controller, Get, HttpCode, Post,HttpStatus,Req, UseGuards} from "@nestjs/common";
 import { usersService } from "./users.service";
 import { RegisterDto } from "./dto/register.dto";
 import { LoginDto } from "./dto/login.dto";
+import { AuthGuard } from "./guards/auth.guard";
+import { currentUser } from "./decorators/current-user.decorator";
+import type {JWTPayloadType} from "../utils/types";
+
+
 @Controller('api/users')
 export class UsersController {
     constructor(private readonly usersService: usersService,
@@ -18,6 +23,13 @@ export class UsersController {
     @HttpCode(HttpStatus.OK)
     public login(@Body() loginDto: LoginDto) {
         return this.usersService.login(loginDto);
+    }
+
+    //GET /api/users/current-user
+    @Get('current-user')
+    @UseGuards(AuthGuard)
+    public getCurrentUser(@currentUser() payload: JWTPayloadType ) {
+        return this.usersService.getCurrentUser(payload.id);
     }
 
 
