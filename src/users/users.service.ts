@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable, NotFoundException} from "@nestjs/common";
+import { BadRequestException, Injectable, NotFoundException,ForbiddenException} from "@nestjs/common";
 import { RegisterDto } from "./dto/register.dto";
 import { Repository } from "typeorm";
 import { User } from "./user.entity";
@@ -7,6 +7,7 @@ import * as bcrypt from 'bcryptjs';
 import { LoginDto } from "./dto/login.dto";
 import { JwtService } from "@nestjs/jwt";
 import { JWTPayloadType,accessTokenType} from "src/utils/types";
+import { UpdateUserDto } from "./dto/update-user.dto";
 
 
 
@@ -17,7 +18,6 @@ export class usersService {
         private readonly jwtService: JwtService
     ) {}
         
-
     /**
      * creates a new user in the database after validating email the input and hashing the password.
      * @param registerDto data for creating a new user, including email, password, and optional username.
@@ -27,8 +27,7 @@ export class usersService {
         const {email, password, username} = registerDto;
         const UserFromDb=await this.userRepository.findOne({where:{email}});
         if (UserFromDb) throw new BadRequestException('User with this email already exists');
-        const salt =await bcrypt.genSalt(10);
-        const hashedPassword = await bcrypt.hash(password, salt);
+        const hashedPassword = await this.HashPassword(password);
         let newUser = this.userRepository.create({
             email,
             password: hashedPassword,
@@ -39,7 +38,6 @@ export class usersService {
 
         return {accessToken};
     }
-
 
     /**
      * login a user by eamil and password
@@ -57,8 +55,6 @@ export class usersService {
         return {accessToken};
     }
 
-
-
     /**
      * get currecnt user (logged in user) by id
      * @param id id of the user to be retrieved
@@ -70,7 +66,6 @@ export class usersService {
         return user;
     }
 
-
     /**
      * Get All users form database
      * @returns collection of users from database
@@ -81,11 +76,55 @@ export class usersService {
 
 
     /**
+     * Update user by id and updateUserDto
+     * @param id id of the logged in user to be updated
+     * @param updateUserDto data for updating the user, including optional password and username.
+     * @returns the updated user
+     */
+    public async updateUser(id: number, updateUserDto: UpdateUserDto) {
+        const { password, username } = updateUserDto;
+        const user = await this.userRepository.findOne({ where: { id } });
+        if (!user) throw new NotFoundException('User not found');
+        user.username = username ?? user.username;
+        if (password) {
+            user.password = await this.HashPassword(password);
+        }
+        return this.userRepository.save(user);
+    }
+
+    /**
+     * delete user by id and payload
+     * @param userid id of the user to be deleted
+     * @param payload JWT payload of the logged in user
+     * @returns a success message if the user is deleted successfully, otherwise throws a ForbiddenException if the logged in user is not authorized to delete the user.
+     */
+    public async deleteUser(userid: number,payload: JWTPayloadType) {
+        const user = await this.getCurrentUser(userid);
+        if(user.id === payload?.id ||payload.userType === 'ADMIN'){
+            await this.userRepository.remove(user);
+            return {message: 'User deleted successfully'};
+        }
+        throw new ForbiddenException('You are not authorized to delete this user');
+    }
+        
+
+    /**
      * Generates a JWT token for the given payload.
      * @param payload JWT PAYLOAD
      * @returns TOEKN
      */
     private GenerateJWT(payload: JWTPayloadType): Promise<string> {
         return this.jwtService.signAsync(payload);
+    }
+
+
+    /**
+     * Hashes a password using bcrypt.
+     * @param password plain text password to be hashed
+     * @returns hashed password
+     */
+    private async HashPassword(password: string): Promise<string> {
+        const salt = await bcrypt.genSalt(10);
+        return bcrypt.hash(password, salt);
     }
 }
