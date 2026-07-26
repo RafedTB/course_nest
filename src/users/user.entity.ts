@@ -1,0 +1,43 @@
+import {Column, CreateDateColumn, Entity, PrimaryGeneratedColumn, UpdateDateColumn, OneToMany} from "typeorm";
+import {CURRENT_TIMESTAMP} from "../utils/constants"
+import { Product } from "src/products/product.entity";
+import { Review } from "src/reviews/review.entity";
+import { UserType } from "src/utils/enum";
+
+
+
+@Entity({name:'users'})
+export class User {
+    @PrimaryGeneratedColumn()
+    id!: number;
+
+    @Column({type: 'varchar', length: 50,nullable:true})
+    username!: string;
+
+    @Column({type: 'varchar', length: 50,unique:true})
+    email!: string;
+    
+    @Column()
+    password!: string;
+
+
+    @Column({type: 'enum', enum: UserType, default: UserType.USER})
+    userType!: UserType;
+
+    @Column({type: 'boolean', default: false})
+    isAccountVerified!: boolean;
+
+    @CreateDateColumn({type:'timestamp',default:()=>CURRENT_TIMESTAMP})
+    createdAt!:Date;
+    
+    
+    @UpdateDateColumn({type:'timestamp',default:()=>CURRENT_TIMESTAMP, onUpdate:CURRENT_TIMESTAMP})
+    updatedAt!:Date;
+
+    @OneToMany(() => Product, product => product.user)
+    products!: Product[];
+
+    @OneToMany(() => Review, review => review.user)
+    reviews!: Review[];
+
+}
