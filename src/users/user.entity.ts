@@ -3,6 +3,7 @@ import {CURRENT_TIMESTAMP} from "../utils/constants"
 import { Product } from "src/products/product.entity";
 import { Review } from "src/reviews/review.entity";
 import { UserType } from "src/utils/enum";
+import { Exclude } from "class-transformer";
 
 
 
@@ -18,6 +19,7 @@ export class User {
     email!: string;
     
     @Column()
+    @Exclude()
     password!: string;
 
 

@@ -1,4 +1,4 @@
-import {Body, Controller, Get, HttpCode, Post,HttpStatus,Req, UseGuards,Put,Delete, Param, ParseIntPipe} from "@nestjs/common";
+import {Body, Controller, Get, HttpCode, Post,HttpStatus, UseGuards,Put,Delete, Param, ParseIntPipe} from "@nestjs/common";
 import { usersService } from "./users.service";
 import { RegisterDto } from "./dto/register.dto";
 import { LoginDto } from "./dto/login.dto";
@@ -32,6 +32,7 @@ export class UsersController {
     //GET /api/users/current-user
     @Get('current-user')
     @UseGuards(AuthGuard)
+    
     public getCurrentUser(@currentUser() payload: JWTPayloadType ) {
         return this.usersService.getCurrentUser(payload.id);
     }
@@ -40,6 +41,7 @@ export class UsersController {
     @Get()
     @Roles(UserType.ADMIN)
     @UseGuards(AuthRolesGuard)
+    
     public getAllUsers() {
         return this.usersService.getAllUsers();
     }
