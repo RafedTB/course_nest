@@ -1,9 +1,13 @@
-import { Controller,Get,Post,Body,Param,NotFoundException,Put, Delete,ParseIntPipe,ValidationPipe } from "@nestjs/common";
+import { Controller,Get,Post,Body,Param,NotFoundException,Put, Delete,ParseIntPipe,ValidationPipe,UseGuards } from "@nestjs/common";
 
 import { CreateProductDto } from "./dto/create-product.dto";
 import { UpdateProductDto } from "./dto/update-product.dto";
 import { ProductsService } from "./products.service";
-
+import {AuthRolesGuard} from "../users/guards/auth-roles.guard"
+import {currentUser} from "../users/decorators/current-user.decorator"
+import type {JWTPayloadType} from "../utils/types"
+import {Roles} from "../users/decorators/user-role.decorator"
+import { UserType } from "src/utils/enum";
 
 @Controller("/api/products")
 export class ProductsController {
@@ -11,8 +15,10 @@ export class ProductsController {
    
 
     @Post()
-    public createNewProduct(@Body(new ValidationPipe()) body:CreateProductDto) {
-        return this.productsService.createProduct(body);
+    @UseGuards(AuthRolesGuard)
+    @Roles(UserType.ADMIN)
+    public createNewProduct(@Body(new ValidationPipe()) body:CreateProductDto,@currentUser() payload:JWTPayloadType) {
+        return this.productsService.createProduct(body, payload.id);
 
     }
     @Get()
@@ -24,10 +30,14 @@ export class ProductsController {
         return this.productsService.getOneBy(id);
     }
     @Put(":id")
+    @UseGuards(AuthRolesGuard)
+    @Roles(UserType.ADMIN)
     public updateProductById(@Param("id", ParseIntPipe) id: number, @Body(new ValidationPipe()) body:UpdateProductDto) {
         return this.productsService.update(id, body);
     }
     @Delete(":id")
+    @UseGuards(AuthRolesGuard)
+    @Roles(UserType.ADMIN)
     public deleteProductById(@Param("id", ParseIntPipe) id: number) {
         return this.productsService.delete(id);
     }
