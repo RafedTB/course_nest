@@ -47,10 +47,16 @@ export class ReviewsService {
 
       /**
        * get all reviews in the database, ordered by creation date in descending order
+       * @param pageNumber the page number to retrieve
+       * @param pageSize the number of reviews to retrieve per page
        * @returns collection of all reviews in the database
        */
-      public async getAllReviews(){
-        return this.reviewRepository.find({order: {createdAt: "DESC"}});
+      public async getAllReviews(pageNumber: number, pageSize: number) {
+        return this.reviewRepository.find({
+          order: { createdAt: "DESC" },
+          skip: (pageNumber - 1) * pageSize,
+          take: pageSize
+        });
       }
 
 

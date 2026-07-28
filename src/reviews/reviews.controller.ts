@@ -1,4 +1,4 @@
-import {Controller, Get,Post,Body,Param,ParseIntPipe, UseGuards, Put, Delete} from "@nestjs/common";
+import {Controller, Get,Post,Body,Param,ParseIntPipe, UseGuards, Put, Delete, Query} from "@nestjs/common";
 import { ReviewsService } from "./reviews.service";
 import {currentUser} from "src/users/decorators/current-user.decorator";
 import {Roles} from "../users/decorators/user-role.decorator"
@@ -27,8 +27,11 @@ export class ReviewsController {
     @Get()
     @UseGuards(AuthRolesGuard)
     @Roles(UserType.ADMIN)
-    public getAllReviews() {
-        return this.reviewsService.getAllReviews();
+    public getAllReviews(
+        @Query('pageNumber', ParseIntPipe) pageNumber: number,
+        @Query('pageSize', ParseIntPipe) pageSize: number
+    ) {
+        return this.reviewsService.getAllReviews(pageNumber, pageSize);
     }
 
 
@@ -48,7 +51,7 @@ export class ReviewsController {
     @UseGuards(AuthRolesGuard)
     @Roles(UserType.USER,UserType.ADMIN)
     public deleteReview(@Param("id", ParseIntPipe) id: number,@currentUser() payload:JWTPayloadType) {
-        return this.reviewsService.deleteReview(id,payload.id);
+        return this.reviewsService.deleteReview(id,payload);
     }
 
 }
