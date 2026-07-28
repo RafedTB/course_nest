@@ -1,10 +1,12 @@
-import {Injectable} from "@nestjs/common";
+import {ForbiddenException, Injectable, NotFoundException} from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Review } from "./review.entity";
 import { Repository } from "typeorm";
 import { ProductsService } from "src/products/products.service";
 import { usersService } from "src/users/users.service";
 import { CreateReviewDto } from "./dto/create-review.dto";
+import { UpdateReviewDto } from "./dto/update-review.dto";
+import type { JWTPayloadType } from "src/utils/types";
 
 
 @Injectable()
@@ -41,6 +43,60 @@ export class ReviewsService {
             userId: result.user.id,
             productId: result.product.id
         }
+      }
+
+      /**
+       * get all reviews in the database, ordered by creation date in descending order
+       * @returns collection of all reviews in the database
+       */
+      public async getAllReviews(){
+        return this.reviewRepository.find({order: {createdAt: "DESC"}});
+      }
+
+
+      /**
+       * update a review by its ID, only if the user is the owner of the review
+       * @param reviewId review ID to be updated
+       * @param userId user ID of the user attempting to update the review
+       * @param dto data for updating the review, including optional rating and comment
+       * @returns updated review 
+       */
+      public async updateReview(reviewId:number, userId:number, dto:UpdateReviewDto){
+        const review = await this.getReviewById(reviewId);
+        if(review.user.id !== userId)
+             throw new ForbiddenException("Access denied. You can only update your own reviews.");
+        review.rating = dto.rating ?? review.rating;
+        review.comment = dto.comment ?? review.comment;
+        await this.reviewRepository.save(review);
+        return review;
+      }
+
+
+      /**
+       * delete a review by its ID, only if the user is the owner of the review or an admin
+       * @param reviewId review ID to be deleted
+       * @param userId user ID of the user attempting to delete the review
+       * @returns delete confirmation message if successful, otherwise throws ForbiddenException
+       */
+      public async deleteReview(reviewId:number, payload:JWTPayloadType){
+        const review = await this.getReviewById(reviewId);
+        if(review.user.id === payload.id || payload.userType === "ADMIN"){
+            await this.reviewRepository.delete(reviewId);
+            return {message: "Review deleted successfully."};
+        }
+        throw new ForbiddenException("Access denied. You can only delete your own reviews.");
+      }
+
+
+      /**
+       * get a review by its ID
+       * @param reviewId review ID to search for
+       * @returns review object if found, otherwise throws NotFoundException
+       */
+      private async getReviewById(reviewId:number){
+        const review=await this.reviewRepository.findOne({where:{id:reviewId}});
+        if(!review) throw new NotFoundException("Review not found");
+        return review;
       }
 
  }
