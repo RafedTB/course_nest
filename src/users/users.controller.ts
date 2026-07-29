@@ -10,7 +10,6 @@ import {Roles} from "./decorators/user-role.decorator";
 import { UserType } from "src/utils/enum";
 import { UpdateUserDto } from "./dto/update-user.dto";
 import {FileInterceptor} from "@nestjs/platform-express";
-import {diskStorage} from "multer";
 import type {Express,Response} from "express";
 
 
@@ -69,27 +68,7 @@ export class UsersController {
     //POST /api/users/upload-profile-image
     @Post('upload-profile-image')
     @UseGuards(AuthGuard)
-    @UseInterceptors(FileInterceptor('user-image', {
-        storage: diskStorage({
-            destination: './uploads/profile-images',
-            filename: (req, file, cb) => {
-                const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
-                const originalName = file.originalname.replace(/\s+/g, '-');
-                const filename = `${uniqueSuffix}-${originalName}`;
-                cb(null, filename);
-            }
-        }),
-        fileFilter: (req, file, cb) => {
-            if (file.mimetype.startsWith('image/')) {
-                cb(null, true);
-            }else{
-                cb(new BadRequestException('Only image files are allowed!'), false);
-            }
-        },
-        limits: {
-            fileSize: 2 * 1024 * 1024, // 2MB limit
-        },
-    }))
+    @UseInterceptors(FileInterceptor('user-image'))
     public uploadProfileImage(@UploadedFile() file: Express.Multer.File, @currentUser() payload: JWTPayloadType) {
         if (!file) throw new BadRequestException('No Image uploaded or invalid file type.');
         return this.usersService.setProfileImage(payload.id, file.filename);
