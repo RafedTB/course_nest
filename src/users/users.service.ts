@@ -7,6 +7,9 @@ import { LoginDto } from "./dto/login.dto";
 import { JWTPayloadType,accessTokenType} from "src/utils/types";
 import { UpdateUserDto } from "./dto/update-user.dto";
 import { AuthProvider } from "./auth.provider";
+import {join} from "node:path";
+import {unlinkSync} from "node:fs";
+
 
 
 
@@ -86,7 +89,39 @@ export class usersService {
         }
         throw new ForbiddenException('You are not authorized to delete this user');
     }
+
+    /**
+     * assign a profile image to the user by updating the user's profileImage field in the database.
+     * @param userId userId of the user to be updated
+     * @param imagePath  path of the image to be assigned to the user
+     * @returns image path of the assigned image
+     */
+    public async setProfileImage(userId: number, imagePath: string) {
+        const user = await this.getCurrentUser(userId);
+        if(user.profileImage===null){
+            user.profileImage = imagePath;
+        }else{
+            await this.removeProfileImage(userId);
+            user.profileImage = imagePath;
+
+        }
         
+        return this.userRepository.save(user);
+    }
 
 
+    /**
+     * remove the profile image of the user by deleting the image file from the server and updating the user's profileImage field in the database.
+     * @param userId userId of the user whose profile image is to be removed
+     * @returns returns the updated user object after removing the profile image.
+     */
+    public async removeProfileImage(userId: number) {
+        const user = await this.getCurrentUser(userId);
+        if(user.profileImage===null) throw new BadRequestException('No profile image to remove');
+        const imagePath = join(process.cwd(),`./uploads/profile-images/${user.profileImage}`);
+        unlinkSync(imagePath);
+        user.profileImage = null;
+        return this.userRepository.save(user);
+
+    }
 }
