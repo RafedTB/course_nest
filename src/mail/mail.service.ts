@@ -59,5 +59,26 @@ export class MailService {
     }
 
 
+    /**
+     * asynchronously sends a reset password email to the user with a reset password link.
+     * @param email an email address of the user to whom the reset password email is to be sent.
+     * @param resetPasswordLink a link to be included in the email for resetting the user's password.
+     */
+    public async sendResetPassword(email:string, resetPasswordLink:string) {
+        try {
+            await this.mailerService.sendMail({
+                to: email,
+                from: `<no-reply@mynestjs.com>`,
+                subject: 'Reset Password',
+                template: 'reset-password',
+                context: { resetPasswordLink },
+            });
+        } catch (error) {
+            console.log(error);
+            throw new RequestTimeoutException('Error sending email');
+        }
+    }
+
+
 
 }

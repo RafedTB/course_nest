@@ -11,6 +11,8 @@ import { UserType } from "src/utils/enum";
 import { UpdateUserDto } from "./dto/update-user.dto";
 import {FileInterceptor} from "@nestjs/platform-express";
 import type {Express,Response} from "express";
+import { ForgotPasswordDto } from "./dto/forgot-password.dto";
+import { ResetPasswordDto } from "./dto/reset-password.dto";
 
 
 @Controller('api/users')
@@ -92,6 +94,28 @@ export class UsersController {
     public async verifyAccount(@Param('id', ParseIntPipe) id: number, @Param('verificationToken') verificationToken: string) {
         return this.usersService.verifyAccount(id, verificationToken);
     }
+
+
+    //POST: /api/users/forgot-password
+    @Post('forgot-password')
+    @HttpCode(HttpStatus.OK)
+    public forgotPassword(@Body() body: ForgotPasswordDto) {
+        return this.usersService.sendResentPassword(body.email);
+    }
+
+    //GET: /api/users/reset-password/:userId/:resetPasswordToken
+    @Get('reset-password/:Id/:resetPasswordToken')
+    public getResetPassword(@Param('Id', ParseIntPipe) id: number, 
+    @Param('resetPasswordToken') resetPasswordToken: string) {
+        return this.usersService.getResetPasswordLink(id, resetPasswordToken);
+    }
+
+    //POST: /api/users/reset-password
+    @Post('reset-password')
+    public resetPassword(@Body() body :ResetPasswordDto) {
+        return this.usersService.resetPassword(body);
+    }
+
 
 
 }

@@ -10,6 +10,7 @@ import { JWTPayloadType,accessTokenType} from "src/utils/types";
 import { MailService } from "src/mail/mail.service";
 import {randomBytes} from 'node:crypto';
 import { ConfigService } from "@nestjs/config";
+import { ResetPasswordDto } from "./dto/reset-password.dto";
 
 @Injectable()
 export class AuthProvider {
@@ -75,6 +76,53 @@ export class AuthProvider {
             return {accessToken};
         }
 
+
+        /**
+         * Sending a reset password email to the user with a reset password link.
+         */
+        public async sendResetPasswordEmail(email: string) {
+            const user = await this.userRepository.findOne({where:{email}});
+            if (!user) throw new BadRequestException('User with this email does not exist');
+            user.resetPasswordToken = randomBytes(32).toString('hex');
+            const result = await this.userRepository.save(user);
+            const resetPasswordLink=`${this.config.get<string>('CLIENT_URL')}/reset-password/${user.id}/${user.resetPasswordToken}`;
+            await this.mailService.sendResetPassword(user.email, resetPasswordLink);
+            return {message:"Reset password email sent to your email address."};
+        }
+
+        /**
+         * get reset password link
+         */
+
+        public async getResetPasswordLink(userId: number, resetPasswordToken: string) {
+            const user = await this.userRepository.findOne({where:{id:userId}});
+            if(!user) throw new BadRequestException('Invalid user ID');
+
+            if(user.resetPasswordToken === null ||user.resetPasswordToken !== resetPasswordToken)
+                throw new BadRequestException('Invalid reset password token');
+            return {message:"Valid reset password link."};
+            
+        }
+
+
+        /**
+         * reset password
+         */
+
+        public async resetPassword(dto : ResetPasswordDto) {
+            const {newPassword, userId, resetPasswordToken} = dto;
+            const user = await this.userRepository.findOne({where:{id:userId}});
+            if(!user) throw new BadRequestException('Invalid user ID');
+
+            if(user.resetPasswordToken === null ||user.resetPasswordToken !== resetPasswordToken)
+                throw new BadRequestException('Invalid reset password token');
+
+            const hashedPassword = await this.HashPassword(newPassword);
+            user.password = hashedPassword;
+            user.resetPasswordToken = null;
+            await this.userRepository.save(user);
+            return {message:"Password reset successful."};
+        }
 
 
     /**

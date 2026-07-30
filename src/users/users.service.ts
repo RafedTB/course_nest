@@ -9,6 +9,7 @@ import { UpdateUserDto } from "./dto/update-user.dto";
 import { AuthProvider } from "./auth.provider";
 import {join} from "node:path";
 import {unlinkSync} from "node:fs";
+import { ResetPasswordDto } from "./dto/reset-password.dto";
 
 
 
@@ -134,4 +135,35 @@ export class usersService {
         await this.userRepository.save(user);
         return {message: 'Account verified successfully'};
     }
+
+
+    /**
+     * a method to send a reset password email to the user with a reset password link.
+     * @param email email of the user to whom the reset password email is to be sent
+     * @returns returns a success message if the reset password email is sent successfully, otherwise throws a BadRequestException if the user with the given email does not exist.
+     */
+    public sendResentPassword(email: string) {
+        return this.authProvider.sendResetPasswordEmail(email);
+    }
+
+    /**
+     * a method to validate the reset password link by checking if the user with the given userId exists and if the resetPasswordToken matches the one stored in the database for that user.
+     * @param userId a user ID for which the reset password link is to be validated
+     * @param resetPasswordToken reset password token associated with the user for resetting the password
+     * @returns returns a success message if the reset password link is valid, otherwise throws a BadRequestException if the user with the given userId does not exist or if the resetPasswordToken does not match the one stored in the database for that user.
+     */
+    public getResetPasswordLink(userId: number, resetPasswordToken: string) {
+        return this.authProvider.getResetPasswordLink(userId, resetPasswordToken);
+    }
+
+
+    /**
+     * a method to reset the password of a user by validating the reset password token and updating the user's password in the database.
+     * @param dto dto containing the new password, user ID, and reset password token for resetting the password
+     * @returns returns a success message if the password is reset successfully, otherwise throws a BadRequestException if the reset password token is invalid or the user with the given ID does not exist.
+     */
+    public resetPassword(dto: ResetPasswordDto) {
+        return this.authProvider.resetPassword(dto);
+    }
+
 }
