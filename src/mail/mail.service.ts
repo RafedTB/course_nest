@@ -21,12 +21,14 @@ export class MailService {
                             to: user.email,
                             from: `<no-reply@mynestjs.com>`,
                             subject: 'Login Notification',
-                            html: `<p>Hello ${user.username || 'User'},</p>
-                                   <p>You have successfully logged in on ${today.toLocaleString()}.</p>
-                                    <p>If this wasn't you, please contact support immediately.</p>`
-                                    
-        
-        
+                            template: 'login', // Name of the template file (without extension)
+                            context: {
+                                user: {
+                                    name: user.username,
+                                    email: user.email,
+                                },
+                                loginTime: today.toLocaleString(),
+                            },
                         })
                     } catch (error) {
                         console.log(error);
