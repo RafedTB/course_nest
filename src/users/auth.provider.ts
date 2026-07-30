@@ -7,12 +7,14 @@ import * as bcrypt from 'bcryptjs';
 import { LoginDto } from "./dto/login.dto";
 import { JwtService } from "@nestjs/jwt";
 import { JWTPayloadType,accessTokenType} from "src/utils/types";
+import { MailService } from "src/mail/mail.service";
 
 @Injectable()
 export class AuthProvider {
     constructor(
             @InjectRepository(User) private readonly userRepository: Repository<User>,
-            private readonly jwtService: JwtService
+            private readonly jwtService: JwtService,
+            private readonly mailService: MailService
         ) {}
 
 
@@ -52,6 +54,7 @@ export class AuthProvider {
             if (!isPasswordValid) throw new BadRequestException('Invalid email or password');
             const accessToken = await this.GenerateJWT({id:user.id, userType:user.userType});
             
+            await this.mailService.sendLoginMail(user); // Send login notification email
             return {accessToken};
         }
 
