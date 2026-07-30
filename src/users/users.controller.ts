@@ -87,4 +87,11 @@ export class UsersController {
         return res.sendFile(image, { root: './uploads/profile-images' });
     }
 
+    //GET: /api/users/verify/:id/:verificationToken
+    @Get('verify/:id/:verificationToken')
+    public async verifyAccount(@Param('id', ParseIntPipe) id: number, @Param('verificationToken') verificationToken: string) {
+        return this.usersService.verifyAccount(id, verificationToken);
+    }
+
+
 }

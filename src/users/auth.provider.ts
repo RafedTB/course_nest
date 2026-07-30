@@ -8,13 +8,16 @@ import { LoginDto } from "./dto/login.dto";
 import { JwtService } from "@nestjs/jwt";
 import { JWTPayloadType,accessTokenType} from "src/utils/types";
 import { MailService } from "src/mail/mail.service";
+import {randomBytes} from 'node:crypto';
+import { ConfigService } from "@nestjs/config";
 
 @Injectable()
 export class AuthProvider {
     constructor(
             @InjectRepository(User) private readonly userRepository: Repository<User>,
             private readonly jwtService: JwtService,
-            private readonly mailService: MailService
+            private readonly mailService: MailService,
+            private readonly config: ConfigService
         ) {}
 
 
@@ -24,7 +27,7 @@ export class AuthProvider {
          * @param registerDto data for creating a new user, including email, password, and optional username.
          * @returns JWT(ACCESS_TOKEN) token for the newly created user.
          */
-        public async register(registerDto: RegisterDto): Promise<accessTokenType> {
+        public async register(registerDto: RegisterDto) {
             const {email, password, username} = registerDto;
             const UserFromDb=await this.userRepository.findOne({where:{email}});
             if (UserFromDb) throw new BadRequestException('User with this email already exists');
@@ -32,12 +35,16 @@ export class AuthProvider {
             let newUser = this.userRepository.create({
                 email,
                 password: hashedPassword,
-                username
+                username,
+                verificationToken: randomBytes(32).toString('hex'), // Generate a random verification token
             });
             newUser = await this.userRepository.save(newUser);
-            const accessToken = await this.GenerateJWT({id:newUser.id, userType:newUser.userType});
+            
+            const link= this.generateLink(newUser.id, newUser.verificationToken!);
+            await this.mailService.sendVerificationMail(email, link); // Send verification email
     
-            return {accessToken};
+    
+            return {message:"verification email sent to your email address"};
         }
     
     
@@ -46,15 +53,25 @@ export class AuthProvider {
          * @param loginDto data for logging in a user
          * @returns JWT(ACCESS_TOKEN) token for the logged in user.
          */
-        public async login(loginDto: LoginDto) : Promise<accessTokenType> {
+        public async login(loginDto: LoginDto) {
             const {email, password} = loginDto;
             const user = await this.userRepository.findOne({where:{email}});
             if (!user) throw new BadRequestException('Invalid email or password');
             const isPasswordValid = await bcrypt.compare(password, user.password);
             if (!isPasswordValid) throw new BadRequestException('Invalid email or password');
+            if(!user.isAccountVerified){
+                let verificationToken = user.verificationToken;
+                if(!verificationToken){
+                    user.verificationToken=randomBytes(32).toString('hex');
+                    await this.userRepository.save(user);
+                    verificationToken=user.verificationToken;
+                }
+                const link= this.generateLink(user.id, verificationToken);
+                await this.mailService.sendVerificationMail(email, link);
+                return {message:"Account not verified. A new verification email has been sent to your email address."};
+            }
             const accessToken = await this.GenerateJWT({id:user.id, userType:user.userType});
             
-            await this.mailService.sendLoginMail(user); // Send login notification email
             return {accessToken};
         }
 
@@ -80,5 +97,14 @@ export class AuthProvider {
     }
 
 
+    /**
+     * a private method to generate a verification link for a user based on their ID and verification token.
+     * @param id a user ID for which the verification link is to be generated
+     * @param verificationToken a verification token associated with the user for account verification
+     * @returns a verification link that can be sent to the user's email for account verification.
+     */
+    private generateLink(id: number, verificationToken: string): string {
+        return `${this.config.get<string>('DOMAIN')}/api/users/verify/${id}/${verificationToken}`;
+    }
 
 }

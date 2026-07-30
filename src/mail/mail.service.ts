@@ -37,5 +37,27 @@ export class MailService {
     }
 
 
+    /**
+     * asynchronously sends a verification email to the user with a verification link.
+     * @param email email address of the user to whom the verification email is to be sent.
+     * @param link link to be included in the email for account verification.
+     */
+     public async sendVerificationMail(email:string, link:string) {
+        try {
+                        
+            await this.mailerService.sendMail({
+            to: email,
+            from: `<no-reply@mynestjs.com>`,
+            subject: 'verify your account',
+            template: 'verification-email', // Name of the template file (without extension)
+            context: {link},
+            })
+        } catch (error) {
+            console.log(error);
+            throw new RequestTimeoutException('Error sending email');
+            }
+    }
+
+
 
 }

@@ -25,7 +25,7 @@ export class usersService {
      * @param registerDto data for creating a new user, including email, password, and optional username.
      * @returns JWT(ACCESS_TOKEN) token for the newly created user.
      */
-    public async register(registerDto: RegisterDto): Promise<accessTokenType> {
+    public async register(registerDto: RegisterDto) {
         return this.authProvider.register(registerDto);
     }
 
@@ -34,7 +34,7 @@ export class usersService {
      * @param loginDto data for logging in a user
      * @returns JWT(ACCESS_TOKEN) token for the logged in user.
      */
-    public async login(loginDto: LoginDto) : Promise<accessTokenType> {
+    public async login(loginDto: LoginDto)  {
         return this.authProvider.login(loginDto);
     }
 
@@ -123,5 +123,15 @@ export class usersService {
         user.profileImage = null;
         return this.userRepository.save(user);
 
+    }
+
+    public async verifyAccount(userId: number, verificationToken: string) {
+        const user=await this.getCurrentUser(userId);
+        if(user.verificationToken===null) throw new NotFoundException('theree is no verification token for this user');
+        if (user.verificationToken !== verificationToken) throw new BadRequestException('Invalid verification token');
+        user.isAccountVerified = true;
+        user.verificationToken = null;
+        await this.userRepository.save(user);
+        return {message: 'Account verified successfully'};
     }
 }
