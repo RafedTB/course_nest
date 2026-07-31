@@ -17,7 +17,6 @@ async function bootstrap() {
   .setTermsOfService('http://localhost:3000/terms')
   .setLicense('MIT', 'http://localhost:3000/license')
   .setVersion('1.0')
-  .addSecurity('bearer', {type:'http',scheme:'bearer'})
   .addBearerAuth()
   .build();
   const documentation = SwaggerModule.createDocument(app, swagger);
