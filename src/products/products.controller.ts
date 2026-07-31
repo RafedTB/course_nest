@@ -8,7 +8,8 @@ import {currentUser} from "../users/decorators/current-user.decorator"
 import type {JWTPayloadType} from "../utils/types"
 import {Roles} from "../users/decorators/user-role.decorator"
 import { UserType } from "src/utils/enum";
-import {ApiQuery,ApiOperation,ApiResponse} from "@nestjs/swagger"
+import {ApiQuery,ApiOperation,ApiResponse,ApiSecurity} from "@nestjs/swagger"
+
 
 
 @Controller("/api/products")
@@ -19,6 +20,7 @@ export class ProductsController {
     @Post()
     @UseGuards(AuthRolesGuard)
     @Roles(UserType.ADMIN)
+    @ApiSecurity('bearer')
     public createNewProduct(@Body(new ValidationPipe()) body:CreateProductDto,@currentUser() payload:JWTPayloadType) {
         return this.productsService.createProduct(body, payload.id);
 
@@ -44,12 +46,14 @@ export class ProductsController {
     @Put(":id")
     @UseGuards(AuthRolesGuard)
     @Roles(UserType.ADMIN)
+    @ApiSecurity('bearer')
     public updateProductById(@Param("id", ParseIntPipe) id: number, @Body(new ValidationPipe()) body:UpdateProductDto) {
         return this.productsService.update(id, body);
     }
     @Delete(":id")
     @UseGuards(AuthRolesGuard)
     @Roles(UserType.ADMIN)
+    @ApiSecurity('bearer')
     public deleteProductById(@Param("id", ParseIntPipe) id: number) {
         return this.productsService.delete(id);
     }
