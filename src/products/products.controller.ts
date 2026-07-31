@@ -8,6 +8,8 @@ import {currentUser} from "../users/decorators/current-user.decorator"
 import type {JWTPayloadType} from "../utils/types"
 import {Roles} from "../users/decorators/user-role.decorator"
 import { UserType } from "src/utils/enum";
+import {ApiQuery,ApiOperation,ApiResponse} from "@nestjs/swagger"
+
 
 @Controller("/api/products")
 export class ProductsController {
@@ -22,6 +24,12 @@ export class ProductsController {
 
     }
     @Get()
+    @ApiResponse({status:200,description:"List of products"})
+    @ApiOperation({summary:"Get all products with optional filters"})
+    @ApiQuery({name:"name",required:false,type:'string',description:"Filter by name"})
+    @ApiQuery({name:"minPrice",required:false,type:'number',description:"Filter by minimum price"})
+    @ApiQuery({name:"maxPrice",required:false,type:'number',description:"Filter by maximum price"})
+
     public getAllProducts(
         @Query('name') name: string,
         @Query('minPrice') minPrice: number,
