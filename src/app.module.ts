@@ -42,6 +42,6 @@ import { LoogerMiddleware } from './utils/middlewares/logger.middleware';
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
-    consumer.apply(LoogerMiddleware).forRoutes({path:'api/products',method:RequestMethod.ALL});
+    consumer.apply(LoogerMiddleware).forRoutes({path:'api/products',method:RequestMethod.GET});
   }
 }

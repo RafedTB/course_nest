@@ -2,13 +2,17 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
 import{SwaggerModule,DocumentBuilder} from '@nestjs/swagger';
+import helmet from 'helmet';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   app.useGlobalPipes(new ValidationPipe({whitelist: true, forbidNonWhitelisted: true}));
+  //apply middleware globally
+  app.use(helmet());
   app.enableCors({
     origin:`http://localhost:3001`
   });
+
 
   const swagger = new DocumentBuilder()
   .setTitle("NestJS API")
