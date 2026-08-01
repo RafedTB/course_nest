@@ -9,10 +9,12 @@ import type {JWTPayloadType} from "../utils/types"
 import {Roles} from "../users/decorators/user-role.decorator"
 import { UserType } from "src/utils/enum";
 import {ApiQuery,ApiOperation,ApiResponse,ApiSecurity} from "@nestjs/swagger"
+import {SkipThrottle, Throttle} from "@nestjs/throttler"
 
 
 
 @Controller("/api/products")
+//@SkipThrottle()
 export class ProductsController {
     constructor(private readonly productsService: ProductsService) {}
    
@@ -40,6 +42,7 @@ export class ProductsController {
         return this.productsService.getAll(name, minPrice, maxPrice);
     }
     @Get(":id")
+    @Throttle({default: {ttl: 60000, limit: 5}})
     public getProductById(@Param("id", ParseIntPipe) id: number) {
         return this.productsService.getOneBy(id);
     }
