@@ -1,12 +1,12 @@
 import {Controller, Get,Post,Body,Param,ParseIntPipe, UseGuards, Put, Delete, Query} from "@nestjs/common";
 import { ReviewsService } from "./reviews.service";
-import {currentUser} from "src/users/decorators/current-user.decorator";
+import {currentUser} from "../users/decorators/current-user.decorator";
 import {Roles} from "../users/decorators/user-role.decorator"
 import {AuthRolesGuard} from "../users/guards/auth-roles.guard"
 import { CreateReviewDto } from "./dto/create-review.dto";
-import { UserType } from "src/utils/enum";
+import { UserType } from "../utils/enum";
 import { UpdateReviewDto } from "./dto/update-review.dto";
-import type { JWTPayloadType } from "src/utils/types";
+import type { JWTPayloadType } from "../utils/types";
 @Controller("/api/reviews")
 export class ReviewsController {
     constructor(private readonly reviewsService: ReviewsService,

@@ -4,7 +4,7 @@ import { Repository } from "typeorm";
 import { User } from "./user.entity";
 import { InjectRepository } from "@nestjs/typeorm";
 import { LoginDto } from "./dto/login.dto";
-import { JWTPayloadType,accessTokenType} from "src/utils/types";
+import { JWTPayloadType,accessTokenType} from "../utils/types";
 import { UpdateUserDto } from "./dto/update-user.dto";
 import { AuthProvider } from "./auth.provider";
 import {join} from "node:path";

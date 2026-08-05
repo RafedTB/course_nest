@@ -7,7 +7,7 @@ import {AuthRolesGuard} from "../users/guards/auth-roles.guard"
 import {currentUser} from "../users/decorators/current-user.decorator"
 import type {JWTPayloadType} from "../utils/types"
 import {Roles} from "../users/decorators/user-role.decorator"
-import { UserType } from "src/utils/enum";
+import { UserType } from "../utils/enum";
 import {ApiQuery,ApiOperation,ApiResponse,ApiSecurity} from "@nestjs/swagger"
 import {SkipThrottle, Throttle} from "@nestjs/throttler"
 

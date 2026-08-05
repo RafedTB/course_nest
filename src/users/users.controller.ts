@@ -7,7 +7,7 @@ import {AuthRolesGuard} from "./guards/auth-roles.guard";
 import { currentUser } from "./decorators/current-user.decorator";
 import type {JWTPayloadType} from "../utils/types";
 import {Roles} from "./decorators/user-role.decorator";
-import { UserType } from "src/utils/enum";
+import { UserType } from "../utils/enum";
 import { UpdateUserDto } from "./dto/update-user.dto";
 import {FileInterceptor} from "@nestjs/platform-express";
 import type {Express,Response} from "express";

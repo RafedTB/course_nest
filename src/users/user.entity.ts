@@ -1,8 +1,8 @@
 import {Column, CreateDateColumn, Entity, PrimaryGeneratedColumn, UpdateDateColumn, OneToMany} from "typeorm";
 import {CURRENT_TIMESTAMP} from "../utils/constants"
-import { Product } from "src/products/product.entity";
-import { Review } from "src/reviews/review.entity";
-import { UserType } from "src/utils/enum";
+import { Product } from "../products/product.entity";
+import { Review } from "../reviews/review.entity";
+import { UserType } from "../utils/enum";
 import { Exclude } from "class-transformer";
 
 

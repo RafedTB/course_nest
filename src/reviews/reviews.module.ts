@@ -4,8 +4,8 @@ import { ReviewsService } from "./reviews.service";
 
 import { Review } from "./review.entity";
 import { TypeOrmModule } from "@nestjs/typeorm";
-import { ProductsModule } from "src/products/products.module";
-import { UsersModule } from "src/users/users.module";
+import { ProductsModule } from "../products/products.module";
+import { UsersModule } from "../users/users.module";
 import { JwtModule } from "@nestjs/jwt";
 
 @Module({

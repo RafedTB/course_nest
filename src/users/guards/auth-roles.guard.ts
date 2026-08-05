@@ -2,9 +2,9 @@ import { CanActivate, ExecutionContext, Injectable, UnauthorizedException } from
 import { JwtService } from "@nestjs/jwt";
 import { Request } from "express";
 import { ConfigService } from "@nestjs/config";
-import { CURRENT_USER_KEY } from "src/utils/constants";
+import { CURRENT_USER_KEY } from "../../utils/constants";
 import { Reflector } from "@nestjs/core";
-import { UserType } from "src/utils/enum";
+import { UserType } from "../../utils/enum";
 import { usersService } from "../users.service";
 
 
