@@ -21,10 +21,6 @@ export class ProductsService {
         private readonly userService: usersService
     ){}
          
-        
-
-   
-
         /**
          * Create a new product
          * @param dto a CreateProductDto object containing the product details
@@ -35,7 +31,7 @@ export class ProductsService {
             const user = await this.userService.getCurrentUser(userId);
             const product= this.productRepository.create({
                 ...dto,
-                name: dto.name.toLowerCase(),
+                name: dto.name,
                 user
             });
             return await this.productRepository.save(product);
