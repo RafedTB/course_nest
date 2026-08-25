@@ -12,6 +12,7 @@ import { UploadsModule } from './uploads/uploads.module';
 import { MailModule } from './mail/mail.module';
 import { LoogerMiddleware } from './utils/middlewares/logger.middleware';
 import {ThrottlerModule,ThrottlerGuard} from '@nestjs/throttler';
+import { dataSourceOptions } from '../db/data-source';
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -40,19 +41,7 @@ import {ThrottlerModule,ThrottlerGuard} from '@nestjs/throttler';
     ReviewsModule,
     UploadsModule,
     MailModule,
-    TypeOrmModule.forRootAsync({
-      inject: [ConfigService],
-      useFactory: (configService: ConfigService) => ({
-        type: 'postgres',
-        host: 'localhost',
-        port: configService.get<number>('DB_PORT'),
-        username: configService.get<string>('DB_USERNAME'),
-        password: configService.get<string>('DB_PASSWORD'),
-        database: configService.get<string>('DATABASE'),
-        synchronize: process.env.NODE_ENV !== 'production',
-        entities:[Product,User,Review],
-      }),
-    }),
+    TypeOrmModule.forRoot(dataSourceOptions),
   ],
   providers: [
     {provide:APP_INTERCEPTOR,useClass:ClassSerializerInterceptor},
@@ -67,3 +56,19 @@ export class AppModule implements NestModule {
     consumer.apply(LoogerMiddleware).forRoutes({path:'api/products',method:RequestMethod.GET});
   }
 }
+
+
+//LOCAL DATABASE
+// {
+//       inject: [ConfigService],
+//       useFactory: (configService: ConfigService) => ({
+//         type: 'postgres',
+//         host: 'localhost',
+//         port: configService.get<number>('DB_PORT'),
+//         username: configService.get<string>('DB_USERNAME'),
+//         password: configService.get<string>('DB_PASSWORD'),
+//         database: configService.get<string>('DATABASE'),
+//         synchronize: process.env.NODE_ENV !== 'production',
+//         entities:[Product,User,Review],
+//       }),
+//     }

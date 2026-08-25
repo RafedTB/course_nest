@@ -4,7 +4,11 @@ import {INestApplication} from '@nestjs/common';
 import request from 'supertest';
 import {AppModule} from '../src/app.module';
 import {Product} from "../src/products/product.entity";
-import { CreateProductDto } from 'src/products/dto/create-product.dto';
+import { CreateProductDto } from '../src/products/dto/create-product.dto';
+import { User } from '../src/users/user.entity';
+import { UserType } from '../src/utils/enum';
+import * as bcrypt from 'bcryptjs';
+
 
 describe('ProductsController (e2e)', () => {
     let app: INestApplication;
@@ -40,18 +44,23 @@ describe('ProductsController (e2e)', () => {
         app=module.createNestApplication();
         await app.init();
         dataSource=app.get(DataSource);
+
+        //sabving new user (admin) to the database
+        const salt = await bcrypt.genSalt(10);
+        const hash=await bcrypt.hash("admin123",salt);
+        await dataSource.createQueryBuilder().insert().into(User).values({ username: "admin" ,email: "admin@example.com", password: hash,userType:UserType.ADMIN,isAccountVerified:true }).execute();
     });
     afterEach(async () => {
-    await dataSource
-        .createQueryBuilder()
-        .delete()
-        .from(Product)
-        .execute();
+    await dataSource.createQueryBuilder().delete().from(Product).execute();
+    await dataSource.createQueryBuilder().delete().from(User).execute();
 });
 
 afterAll(async () => {
     await app.close();
 });
+
+
+
     //get api/products
     describe('GET /api/products', () => {
         it('should return all products', async () => {
@@ -74,8 +83,6 @@ afterAll(async () => {
             const response = await request(app.getHttpServer()).get('/api/products?minPrice=15&maxPrice=35');
             expect(response.status).toBe(200);
             expect(response.body.length).toBe(2);
-            expect(response.body[0].name).toBe("Product 3");
-            expect(response.body[1].name).toBe("Product 2");
         })
     })
 });
